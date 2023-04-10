@@ -1,16 +1,30 @@
 from pydantic import BaseModel, Field
 
+
 class SessionData(BaseModel):
     auth: bool = Field(default=False, description="是否有鉴权")
     model: str = Field(default="ChatGPTAPI", description="接口模式")
+
 
 class SessionResponse(BaseModel):
     status: str = Field(default="Success", description="返回状态, Success: 正常 Fail: 异常")
     message: str = Field(default="", description="返回信息")
     data: SessionData = Field(default=SessionData(), description="数据")
 
+
+class VerifyRequest(BaseModel):
+    token: str = Field(default=None, description="token")
+
+
+class VerifyResponse(BaseModel):
+    status: str = Field(default="Fail", description="返回状态, Success: 正常 Fail: 异常")
+    message: str = Field(default="密钥无效 | Secret key is invalid", description="返回信息")
+    token: str = Field(default=None, description="token")
+
+
 class ChatProcessOptions(BaseModel):
     parentMessageId: str = Field(default="", description="父消息ID")
+
 
 class ChatProcessRequest(BaseModel):
     prompt: str = Field(default="", description="当前消息")
@@ -38,6 +52,7 @@ class ConfigData(BaseModel):
     socksProxy: str = Field(default="-", description="socks代理")
     httpsProxy: str = Field(default="-", description="http代理")
     balance: str = Field(default="$0.00", description="api用量")
+
 
 class ConfigResponse(BaseModel):
     status: str = Field(default="Success", description="返回状态, Success: 正常 Fail: 异常")

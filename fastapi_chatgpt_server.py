@@ -17,7 +17,8 @@ from util import get_key_usage, get_proxies, num_tokens_from_messages
 
 # 加载环境变量
 load_dotenv()
-assert os.getenv("OPENAI_API_KEY"), "Please configure OPENAI_API_KEY in the environment."
+assert (api_key := os.getenv("OPENAI_API_KEY")), "Please configure OPENAI_API_KEY in the environment."
+openai.api_key = api_key
 
 # 加载数据库
 models.Base.metadata.create_all(bind=database.engine)
@@ -25,6 +26,7 @@ models.Base.metadata.create_all(bind=database.engine)
 app = FastAPI()
 origins = ["*"]
 app.add_middleware(CORSMiddleware, allow_origins=origins)
+
 
 @app.post('/chat-process')
 async def chat_process(data: ChatProcessRequest, db: Session = Depends(crud.get_db)):
@@ -41,18 +43,18 @@ async def chat_process(data: ChatProcessRequest, db: Session = Depends(crud.get_
             messages = db_conversation.contents
     if not messages:
         messages.append({"role": "system", "content": data.systemMessage})
-    chat = {"role": "user", "content": data.prompt}
-    messages.append(chat)
+    # 插入最新问题
+    messages.append({"role": "user", "content": data.prompt})
     model = _model if (_model := os.getenv("OPENAI_API_MODEL")) else "gpt-3.5-turbo-0301"
     # 计算token
     chat_response.question_token = await num_tokens_from_messages(messages, model=model)
     # openai请求参数
     params = {
-        "model" : model,
-        "messages" : messages,
+        "model": model,
+        "messages": messages,
         'temperature': data.temperature,
         'top_p': data.top_p,
-        "stream" : True
+        "stream": True
     }
     # 设置代理
     openai.proxy = get_proxies(package="openai")
@@ -106,20 +108,34 @@ async def chat_process(data: ChatProcessRequest, db: Session = Depends(crud.get_
     # 流式返回
     return StreamingResponse(content=generate(), media_type="application/octet-stream")
 
+
 @app.post("/config", response_model=ConfigResponse, summary="配置文件记录")
 async def config():
-    usege = await get_key_usage()
+    usage = await get_key_usage()
     response = ConfigResponse()
-    response.data.balance = f"${usege}"
-    logger.info(response.json())
+    response.data.balance = f"${usage}"
+    logger.info(f"config: {response.json(ensure_ascii=False)}")
     return response
+
 
 @app.post("/session", response_model=SessionResponse, summary="")
 async def session():
     response = SessionResponse()
+    response.data.auth = True if os.getenv("AUTH_SECRET_KEY") else False
+    logger.info(f"session: {response.json(ensure_ascii=False)}")
     return response
 
-# @app.post("/verify")
 
-if __name__=="__main__":
+@app.post("/verify", response_model=VerifyResponse, summary="验证授权")
+async def verify(data: VerifyRequest):
+    response = VerifyResponse()
+    if data.token == os.getenv("AUTH_SECRET_KEY"):
+        response.status = "Success"
+        response.message = ""
+        response.token = os.getenv("AUTH_SECRET_KEY")
+    logger.info(f"verify: {response.json(ensure_ascii=False)}")
+    return response
+
+
+if __name__ == "__main__":
     uvicorn.run(app=f"{Path(__file__).stem}:app", host="0.0.0.0", port=3002, reload=True)
