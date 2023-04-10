@@ -6,5 +6,7 @@
 
 使用FastAPI实现接口、SQLite实现记忆会话。
 
+数据库可视化使用 [DB Browser for SQLite](https://sqlitebrowser.org/dl/)
+
 ![show](./assets/gpt1.png)
 
