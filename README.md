@@ -17,6 +17,7 @@
 配置OPENAI_API_KEY 和 AUTH_SECRET_KEY
 ```bash
 conda create -n chat-web-service python=3.11
+conda activate chat-web-servic
 pip install -r requirements.txt
 nohup python -m gunicorn fastapi_chatgpt_server:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:3002 >/dev/null 2>&1 &
 ```
