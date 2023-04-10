@@ -34,13 +34,13 @@ async def chat_process(data: ChatProcessRequest, db: Session = Depends(crud.get_
     chat_response = ChatProcessResponse()
     # 配置对话内容
     messages = []
-    if not messages:
-        messages.append({"role": "system", "content": data.systemMessage})
     if data.options.parentMessageId:
         # 查询历史会话
         db_conversation = crud.get_conversation_by_id(db, id=data.options.parentMessageId)
         if db_conversation:
             messages = db_conversation.contents
+    if not messages:
+        messages.append({"role": "system", "content": data.systemMessage})
     chat = {"role": "user", "content": data.prompt}
     messages.append(chat)
     model = _model if (_model := os.getenv("OPENAI_API_MODEL")) else "gpt-3.5-turbo-0301"
