@@ -18,7 +18,6 @@ from util import get_key_usage, get_proxies, num_tokens_from_messages
 # 加载环境变量
 load_dotenv()
 assert (api_key := os.getenv("OPENAI_API_KEY")), "Please configure OPENAI_API_KEY in the environment."
-openai.api_key = api_key
 
 # 加载数据库
 models.Base.metadata.create_all(bind=database.engine)
