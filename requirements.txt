@@ -1,0 +1,6 @@
+fastapi
+sqlalchemy
+dotenv
+loguru
+openai
+tiktoken
