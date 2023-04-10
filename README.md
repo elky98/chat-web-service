@@ -12,7 +12,9 @@
 
 由于使用了海象运算符，Python最低要求3.8。  
 
-启动方式：（推荐使用conda）  
+启动方式：（推荐使用conda）
+复制 .env.example 重命名为 .env  
+配置OPENAI_API_KEY 和 AUTH_SECRET_KEY
 ```bash
 conda create -n chat-web-service python=3.11
 pip install -r requirements.txt
